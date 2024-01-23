@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -21,6 +23,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController bioController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   Uint8List? _image;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -36,6 +39,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
     Uint8List image = await pickImage(ImageSource.gallery);
     setState(() {
       _image = image;
+    });
+  }
+
+  void signup() async {
+    setState(() {
+      _isLoading = true;
+    });
+    String res = await AuthMethods().signup(
+        email: emailController.text,
+        password: passwordController.text,
+        username: usernameController.text,
+        bio: bioController.text,
+        file: _image!);
+    // print(res);
+
+    if (res != "success") {
+      showSnackBar(res, context);
+    }
+    setState(() {
+      _isLoading = false;
     });
   }
 
@@ -117,15 +140,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             SizedBox(height: MediaQuery.of(context).size.height / 40),
             //button login
             InkWell(
-              onTap: () async {
-                String res = await AuthMethods().signup(
-                    email: emailController.text,
-                    password: passwordController.text,
-                    username: usernameController.text,
-                    bio: bioController.text,
-                    file: _image!);
-                print(res);
-              },
+              onTap: signup,
               child: Container(
                 width: double.infinity,
                 alignment: Alignment.center,
@@ -135,7 +150,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                     ),
                     color: blueColor),
-                child: const Text('Sign Up'),
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: primaryColor,
+                        ),
+                      )
+                    : const Text('Sign Up'),
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height / 50),

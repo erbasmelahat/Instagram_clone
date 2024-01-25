@@ -1,6 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:instagram_clone/resources/auth_methods.dart';
 import 'package:instagram_clone/utils/colors.dart';
+import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/input_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -13,12 +17,29 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  bool isLoading = false;
 
   @override
   void dispose() {
     super.dispose();
     emailController.dispose();
     passwordController.dispose();
+  }
+
+  void loginUser() async {
+    setState(() {
+      isLoading = true;
+    });
+    String res = await AuthMethods().loginUser(
+        email: emailController.text, password: passwordController.text);
+
+    if (res == "success") {
+    } else {
+      showSnackBar(res, context);
+    }
+    setState(() {
+      isLoading = false;
+    });
   }
 
   @override
@@ -61,6 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: MediaQuery.of(context).size.height / 40),
             //button login
             InkWell(
+              onTap: loginUser,
               child: Container(
                 width: double.infinity,
                 alignment: Alignment.center,
@@ -70,7 +92,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.all(Radius.circular(4)),
                     ),
                     color: blueColor),
-                child: const Text('Log In'),
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: primaryColor),
+                      )
+                    : const Text('Log In'),
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height / 50),
